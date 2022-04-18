@@ -1,0 +1,61 @@
+{
+ "properties": {
+  "displayName": "Deny public access of Azure Machine Learning clusters via SSH",
+  "policyType": "Custom",
+  "mode": "Indexed",
+  "description": "Deny public access of Azure Machine Learning clusters via SSH.",
+  "metadata": {
+   "category": "Machine Learning",
+   "version": "1.0.0",
+   "updatedBy": null,
+   "updatedOn": null
+  },
+  "parameters": {
+   "effect": {
+    "type": "String",
+    "metadata": {
+     "description": "Enable or disable the execution of the policy",
+     "displayName": "Effect"
+    },
+    "allowedValues": [
+     "Audit",
+     "Disabled",
+     "Deny"
+    ],
+    "defaultValue": "Deny"
+   }
+  },
+  "policyRule": {
+   "if": {
+    "allOf": [
+     {
+      "equals": "Microsoft.MachineLearningServices/workspaces/computes",
+      "field": "type"
+     },
+     {
+      "equals": "AmlCompute",
+      "field": "Microsoft.MachineLearningServices/workspaces/computes/computeType"
+     },
+     {
+      "anyOf": [
+       {
+        "exists": false,
+        "field": "Microsoft.MachineLearningServices/workspaces/computes/remoteLoginPortPublicAccess"
+       },
+       {
+        "field": "Microsoft.MachineLearningServices/workspaces/computes/remoteLoginPortPublicAccess",
+        "notEquals": "Disabled"
+       }
+      ]
+     }
+    ]
+   },
+   "then": {
+    "effect": "[parameters('effect')]"
+   }
+  }
+ },
+ "id": "/providers/Microsoft.Management/managementGroups/management_group_id/providers/Microsoft.Authorization/policyDefinitions/Deny-MachineLearning-ComputeCluster-RemoteLoginPortPublicAccess",
+ "type": "Microsoft.Authorization/policyDefinitions",
+ "name": "Deny-MachineLearning-ComputeCluster-RemoteLoginPortPublicAccess"
+}

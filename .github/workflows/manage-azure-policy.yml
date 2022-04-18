@@ -1,0 +1,32 @@
+name: manage-azure-policy
+on:
+  workflow_dispatch:
+    inputs:
+      remarks:
+        description: 'Reason for triggering the workflow run'
+        required: false
+        default: 'Updating Azure Policies'
+
+jobs:
+  apply-azure-policy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Insert Management Group Id
+      run: |
+           find ./initiatives/ -type f -name '*.json' -exec sed -i "s/management_group_id/$MANAGEMENT_GROUP_ID/g" '{}' ';'
+           find ./policies/ -type f -name '*.json' -exec sed -i "s/management_group_id/$MANAGEMENT_GROUP_ID/g" '{}' ';'
+      env:
+        MANAGEMENT_GROUP_ID: ${{secrets.MANAGEMENT_GROUP_ID}}
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+        allow-no-subscriptions: true
+    - name: Create or Update Azure Policies
+      uses: azure/manage-azure-policy@v0
+      with:
+        paths: |
+          policies/production/**
+          initiatives/production/**
